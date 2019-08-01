@@ -1,5 +1,6 @@
 # Define the data structure to use for IAM permissions
 import datetime
+import re
 
 """
 
@@ -44,4 +45,28 @@ def move_to_escrow(iam, iam_escrow, member):
 	iam_escrow[member] = iam[member]
 	iam_escrow[member]['archived_ts'] = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()).strftime('%Y-%m-%dT%H:%M:%S')
 	del iam[member]
-	
+
+def add_resource_bindings(iam, member, resource, permissions=set()):
+	if resource not in iam[member]:
+		iam[member][resource] = permissions
+	else:
+		if not iam[member][resource]:
+			iam[member][resource] = permissions
+		else:
+			iam[member][resource].update(permissions)
+
+def is_valid_member(member):
+	if not re.match(r"[^@]+@[^@]+\.[^@]+", member):
+		return False
+	else:
+		return True
+
+def add_member(iam, member, resource=None, permissions=set()):
+	if not is_valid_member(member):
+		raise ValueError("Invalid member format, expecting email")
+	if member not in iam:
+		iam[member] = {}
+		if not resource:
+			return
+		else:
+			add_resource_bindings(iam, member, resource, permissions)
