@@ -41,6 +41,19 @@ def unfreeze_member(iam, member):
 	iam[unfrozen_member] = iam[member]
 	del iam[member]
 
+def remove_member(iam, member):
+	if member in iam:
+		del iam[member]
+
+def remove_binding(iam, member, resource, binding):
+	# Assumes iam and member exist
+	if binding in iam[member][resource]:
+		iam[member][resource].remove(binding)
+
+def remove_resource(iam, member, resource):
+	if resource in iam[member]:
+		del iam[member][resource]
+
 def move_to_escrow(iam, iam_escrow, member):
 	iam_escrow[member] = iam[member]
 	iam_escrow[member]['archived_ts'] = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()).strftime('%Y-%m-%dT%H:%M:%S')
