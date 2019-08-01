@@ -54,10 +54,35 @@ def remove_resource(iam, member, resource):
 	if resource in iam[member]:
 		del iam[member][resource]
 
-def move_to_escrow(iam, iam_escrow, member):
-	iam_escrow[member] = iam[member]
-	iam_escrow[member]['archived_ts'] = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()).strftime('%Y-%m-%dT%H:%M:%S')
-	del iam[member]
+def move_iam2escrow(iam, iam_escrow, member):
+	# members aren't frozen in escrow
+	archived_ts = datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()).strftime('%Y-%m-%dT%H:%M:%S')
+	if member not in iam_escrow:
+		iam_escrow[member] = iam[member]
+		iam_escrow[member]['archived_ts'] = archived_ts
+		del iam[member]
+	else:
+		member += "/" + archived_ts
+		iam_escrow[member] = iam[member]
+		iam_escrow[member]['archived_ts'] = archived_ts
+		del iam[member]
+
+def move_escrow2iam(iam_escrow, iam, archived_member, active_member, mode='additive'):
+	# active member must exist
+	assert (mode in {'strict', 'additive'}), "mode must be 'strict' or 'additive'"
+	if active_member not in iam:
+		raise KeyError("active_member must exist in iam")
+	else:
+		# merge permissions from archived_member into active_member
+		del iam_escrow[archived_member]['archived_ts']
+		if (not iam[active_member]) or mode == 'strict':
+			iam[active_member] = iam_escrow[archived_member]
+		else:
+			for e_resource in iam_escrow[archived_member]:
+				if e_resource in iam[active_member]:
+					iam[active_member][e_resource].update(iam_escrow[archived_member][e_resource])
+				else:
+					iam[active_member][e_resource] = iam_escrow[archived_member][e_resource]
 
 def add_resource_bindings(iam, member, resource, permissions=set()):
 	if resource not in iam[member]:
