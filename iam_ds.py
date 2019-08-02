@@ -14,13 +14,17 @@ iam = { member_a : {
 		}
 """
 
-iam = { 'jack@abc.co' : {
+iam = { 'john@abc.co' : {
+						'storage_bucket_alpha' : {'READ'}
+						},
+		'jack@abc.co' : {
 						'storage_bucket_alpha' : {'READ', 'WRITE'},
 						'storage_bucket_archive' : {'READ'}
 						},
-		'john@abc.co' : {
+		'jill@abc.co' : {
 						'storage_bucket_alpha' : {'READ', 'WRITE', 'DELETE'},
-						'storage_bucket_archive' : {'READ', 'WRITE'}
+						'storage_bucket_archive' : {'READ', 'WRITE'},
+						'Network_configs' : {'READ'}
 						}
 	  }
 
@@ -108,3 +112,42 @@ def add_member(iam, member, resource=None, permissions=set()):
 			return
 		else:
 			add_resource_bindings(iam, member, resource, permissions)
+
+def get_stats(iam):
+	num_members = len(iam)
+	num_active_members = 0
+	num_frozen_members = 0
+	frozen_resources = set()
+	resources = set()
+	for m in iam:
+		name, domain = m.split('@')
+		if name.endswith("_frozen"):
+			num_frozen_members += 1
+		else:
+			num_active_members += 1
+		for r in iam[m]:
+			resources.add(r)
+			if name.endswith("_frozen"):
+				frozen_resources.add(r)
+	num_resources = len(resources)
+	num_frozen_resources = len(frozen_resources)
+	if num_active_members > 0:
+		print("Number of active members: %d" % num_active_members)
+	if num_resources > 0:
+		print("\tNumber of resources being bound to active members: %d" % num_resources)
+	if num_frozen_members > 0:
+		print("Number of frozen members: %d" % num_frozen_members)
+	if num_frozen_resources > 0:
+		print("\tNumber of resources being bound to frozen members: %d" % num_frozen_resources)
+
+def get_escrow_stats(iam_escrow):
+	num_archived_members = len(iam_escrow)
+	resources = set()
+	for m in iam_escrow:
+		for r in iam_escrow[m]:
+			if r == 'archived_ts':
+				continue
+			resources.add(r)
+	num_resources = len(resources)
+	print("Number of archived member permission sets: %d" % num_archived_members)
+	print("\tNumber of resources in archived sets: %d" % num_resources)
