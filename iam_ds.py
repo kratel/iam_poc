@@ -126,9 +126,10 @@ def get_stats(iam):
 		else:
 			num_active_members += 1
 		for r in iam[m]:
-			resources.add(r)
 			if name.endswith("_frozen"):
 				frozen_resources.add(r)
+			else:
+				resources.add(r)
 	num_resources = len(resources)
 	num_frozen_resources = len(frozen_resources)
 	if num_active_members > 0:
