@@ -47,7 +47,7 @@ input("\n" + ("=" * pad_num))
 #Escrow concept
 iam = deepcopy(iam_base)
 print("\n\nJill is leaving company, she has some high level permissions, bindings might be valuable to troubleshoot services she was responsible for")
-print("Instead of freezing archive binidngs")
+print("Instead of freezing archive bindings")
 
 move_iam2escrow(iam, iam_escrow, 'jill@abc.co')
 print("IAM hierarchy now looks like this.")
